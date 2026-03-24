@@ -49,19 +49,57 @@ export default function usePillGestures(
     }
   }, [setActiveTab, pendingTab]);
 
+  const detectTab = useCallback((x: number) => {
+    "worklet";
+    if (x >= TABS_START && x < TABS_END) {
+      return Math.min(
+        MAX_SWITCHABLE_TAB,
+        Math.floor((x - TABS_START) / TAB_ZONE_WIDTH),
+      );
+    }
+    return -1;
+  }, []);
+
+  const switchToTab = useCallback((x: number) => {
+    "worklet";
+    if (searchProgress.get() >= 0.5) return;
+    const newTab = detectTab(x);
+    if (newTab >= 0 && newTab !== activeTabSV.get()) {
+      activeTabSV.set(newTab);
+      pendingTab.set(newTab);
+      scheduleOnRN(applyPendingTab);
+      scheduleOnRN(triggerHaptic);
+    }
+  }, [searchProgress, detectTab, activeTabSV, pendingTab, applyPendingTab, triggerHaptic]);
+
   const panGesture = useMemo(() => {
-    return Gesture.Pan()
-      .minDistance(10)
+    const longPress = Gesture.LongPress()
+      .minDuration(0)
       .onStart((e) => {
         cancelAnimation(overflowX);
         cancelAnimation(overflowY);
         cancelAnimation(glowProgress);
 
-        // Show glow at initial touch point
         touchX.set(e.x);
         touchY.set(e.y);
         pillPressed.set(withTiming(1, { duration: 80 }));
+        glowProgress.set(1);
+
+        // Activate tab immediately on press
+        switchToTab(e.x);
+      });
+
+    const pan = Gesture.Pan()
+      .minDistance(10)
+      .onStart((e) => {
+        // Ensure glow is active even on fast swipes where long press may not fire
+        cancelAnimation(overflowX);
+        cancelAnimation(overflowY);
         cancelAnimation(glowProgress);
+
+        touchX.set(e.x);
+        touchY.set(e.y);
+        pillPressed.set(withTiming(1, { duration: 80 }));
         glowProgress.set(1);
       })
       .onUpdate((e) => {
@@ -85,21 +123,8 @@ export default function usePillGestures(
         overflowY.set(ovY);
 
         // When inside bounds, update active tab based on finger position
-        if (searchProgress.get() < 0.5 && ovX === 0 && ovY === 0) {
-          let newTab = -1;
-          if (x >= TABS_START && x < TABS_END) {
-            newTab = Math.min(
-              MAX_SWITCHABLE_TAB,
-              Math.floor((x - TABS_START) / TAB_ZONE_WIDTH),
-            );
-          }
-
-          if (newTab >= 0 && newTab !== activeTabSV.get()) {
-            activeTabSV.set(newTab);
-            pendingTab.set(newTab);
-            scheduleOnRN(applyPendingTab);
-            scheduleOnRN(triggerHaptic);
-          }
+        if (ovX === 0 && ovY === 0) {
+          switchToTab(x);
         }
       })
       .onEnd(() => {
@@ -108,6 +133,8 @@ export default function usePillGestures(
         overflowX.set(withSpring(0, SPRING_BOUNCY));
         overflowY.set(withSpring(0, SPRING_BOUNCY));
       });
+
+    return Gesture.Simultaneous(longPress, pan);
   }, [
     overflowX,
     overflowY,
@@ -115,11 +142,7 @@ export default function usePillGestures(
     touchY,
     pillPressed,
     glowProgress,
-    activeTabSV,
-    searchProgress,
-    pendingTab,
-    applyPendingTab,
-    triggerHaptic,
+    switchToTab,
   ]);
 
   return {
