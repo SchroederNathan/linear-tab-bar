@@ -35,6 +35,7 @@ const GLOW_HALF = GLOW_SIZE / 2;
 interface SearchButtonProps {
   searchProgress: SharedValue<number>;
   searchAnimatedStyle: AnimatedStyle;
+  searchButtonMenuStyle?: AnimatedStyle;
   isSearchActive: boolean;
   pressed: SharedValue<number>;
   overflowX: SharedValue<number>;
@@ -48,6 +49,7 @@ interface SearchButtonProps {
 export default function SearchButton({
   searchProgress,
   searchAnimatedStyle,
+  searchButtonMenuStyle,
   isSearchActive,
   pressed,
   overflowX,
@@ -152,7 +154,7 @@ export default function SearchButton({
   });
 
   return (
-    <Animated.View style={searchAnimatedStyle}>
+    <Animated.View style={[searchAnimatedStyle, searchButtonMenuStyle]}>
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={glassStyle}>
           <Animated.View

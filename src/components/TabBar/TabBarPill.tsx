@@ -26,6 +26,7 @@ import {
   PILL_WIDTH,
 } from "../../constants/layout";
 import GlassMaterial from "./GlassMaterial";
+import MenuPanel from "./MenuPanel";
 import TabIcon from "./TabIcon";
 
 const TAB_ICONS: LucideIcon[] = [Box, ScanFace, Star, ChevronsUpDown];
@@ -38,13 +39,14 @@ const HALF_W = PILL_WIDTH / 2;
 const HALF_H = PILL_HEIGHT / 2;
 
 // Glow constants
-const GLOW_SIZE = 120;
+const GLOW_SIZE = 200;
 const GLOW_HALF = GLOW_SIZE / 2;
 
 interface TabBarPillProps {
   activeTab: number;
   onTabPress: (index: number) => void;
   searchProgress: SharedValue<number>;
+  menuProgress: SharedValue<number>;
   pillAnimatedStyle: AnimatedStyle;
   pillPressed: SharedValue<number>;
   overflowX: SharedValue<number>;
@@ -59,6 +61,7 @@ export default function TabBarPill({
   activeTab,
   onTabPress,
   searchProgress,
+  menuProgress,
   pillAnimatedStyle,
   pillPressed,
   overflowX,
@@ -69,6 +72,20 @@ export default function TabBarPill({
   panGesture,
 }: TabBarPillProps) {
   const pillGlassStyle = useAnimatedStyle(() => {
+    const mp = menuProgress.get();
+
+    // Disable stretch when menu is open
+    if (mp > 0.5) {
+      return {
+        transform: [
+          { translateX: 0 },
+          { translateY: 0 },
+          { scaleX: 1 },
+          { scaleY: 1 },
+        ],
+      };
+    }
+
     const pressScale = interpolate(pillPressed.get(), [0, 1], [1, 1.02]);
 
     const ox = overflowX.get();
@@ -106,8 +123,6 @@ export default function TabBarPill({
 
   const glowStyle = useAnimatedStyle(() => {
     const progress = glowProgress.get();
-    // glowProgress: 1 = held, 2 = releasing (expand + fade)
-    // On press: jump to 1 (visible, scale 1). On release: animate 1→2 (expand, fade out).
     const opacity = progress <= 1
       ? progress * 0.2
       : interpolate(progress, [1, 2], [0.2, 0], "clamp");
@@ -133,7 +148,6 @@ export default function TabBarPill({
             styles.pill,
             pillAnimatedStyle,
             styles.pillSurface,
-            { borderRadius: PILL_BORDER_RADIUS },
           ]}
         >
           <GlassMaterial
@@ -149,6 +163,7 @@ export default function TabBarPill({
                   isActive={index < 3 && activeTab === index}
                   onPress={onTabPress}
                   searchProgress={searchProgress}
+                  menuProgress={menuProgress}
                   showDot={index === 3}
                   isCircle={index === 3}
                   pillPressed={pillPressed}
@@ -158,6 +173,7 @@ export default function TabBarPill({
                 />
               ))}
             </View>
+            <MenuPanel menuProgress={menuProgress} />
           </GlassMaterial>
           <Animated.View
             style={[styles.glowContainer, glowStyle]}
@@ -185,8 +201,7 @@ export default function TabBarPill({
 
 const styles = StyleSheet.create({
   pill: {
-    height: PILL_HEIGHT,
-    justifyContent: "center",
+    justifyContent: "flex-start",
   },
   pillSurface: {
     overflow: "hidden",
@@ -197,9 +212,9 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   iconsRow: {
-    flex: 1,
     flexDirection: "row",
-    alignItems: "stretch",
+    alignItems: "center",
+    height: PILL_HEIGHT,
     paddingHorizontal: ICON_PADDING,
     paddingVertical: 4,
     gap: 0,

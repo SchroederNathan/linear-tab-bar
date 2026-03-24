@@ -7,6 +7,7 @@ import Animated, {
   cancelAnimation,
   interpolate,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
@@ -16,6 +17,7 @@ import {
   ICON_STROKE_WIDTH,
   PILL_BORDER_RADIUS,
   PILL_HEIGHT,
+  PILL_WIDTH,
 } from "../../constants/layout";
 import { COLORS } from "../../constants/theme";
 import { TAB_CENTER_XS } from "../../hooks/usePillGestures";
@@ -27,6 +29,7 @@ interface TabIconProps {
   isActive: boolean;
   onPress: (index: number) => void;
   searchProgress: SharedValue<number>;
+  menuProgress: SharedValue<number>;
   showDot: boolean;
   isCircle: boolean;
   pillPressed: SharedValue<number>;
@@ -41,6 +44,7 @@ export default function TabIcon({
   isActive,
   onPress,
   searchProgress,
+  menuProgress,
   showDot,
   isCircle,
   pillPressed,
@@ -48,6 +52,8 @@ export default function TabIcon({
   touchY,
   glowProgress,
 }: TabIconProps) {
+  const circlePressed = useSharedValue(0);
+
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
@@ -63,32 +69,65 @@ export default function TabIcon({
       pillPressed.set(withTiming(1, { duration: 80 }));
       cancelAnimation(glowProgress);
       glowProgress.set(1);
+      if (isCircle) {
+        cancelAnimation(circlePressed);
+        circlePressed.set(1);
+      }
     })
-    .onFinalize(() => {
+    .onFinalize((_event, success) => {
       pillPressed.set(withTiming(0, { duration: 150 }));
       glowProgress.set(withTiming(2, { duration: 300 }));
+      if (isCircle) {
+        circlePressed.set(withTiming(0, { duration: 200 }));
+        // Always trigger for circle since onEnd may not fire due to outer gesture conflict
+        scheduleOnRN(triggerHaptic);
+        scheduleOnRN(handlePress);
+      }
     })
     .onEnd(() => {
       scheduleOnRN(triggerHaptic);
-      scheduleOnRN(handlePress);
+      if (!isCircle) {
+        scheduleOnRN(handlePress);
+      }
     });
 
-  // Fade out icons 1-3 during search transition and collapse their width
+  // Fade out icons during search or menu transition
   const iconAnimatedStyle = useAnimatedStyle(() => {
-    const progress = searchProgress.get();
+    const sp = searchProgress.get();
+    const mp = menuProgress.get();
+
+    // Menu collapse: all icons collapse toward center and fade
+    if (mp > 0.01) {
+      const centerX = PILL_WIDTH / 2;
+      const iconX = TAB_CENTER_XS[index];
+      const toCenter = centerX - iconX;
+      return {
+        opacity: interpolate(mp, [0.15, 0.5], [1, 0], "clamp"),
+        transform: [
+          { translateX: interpolate(mp, [0.15, 0.5], [0, toCenter], "clamp") },
+          { scale: interpolate(mp, [0.15, 0.5], [1, 0.3], "clamp") },
+        ],
+      };
+    }
+
+    // Search behavior (existing)
     if (index === 0) {
       return { opacity: 1, transform: [{ scale: 1 }] };
     }
     return {
-      opacity: interpolate(progress, [0, 0.3], [1, 0]),
-      transform: [{ scale: interpolate(progress, [0, 0.3], [1, 0.5]) }],
-      flex: isCircle ? undefined : interpolate(progress, [0, 0.3], [1, 0]),
+      opacity: interpolate(sp, [0, 0.3], [1, 0]),
+      transform: [{ scale: interpolate(sp, [0, 0.3], [1, 0.5]) }],
+      flex: isCircle ? undefined : interpolate(sp, [0, 0.3], [1, 0]),
       width: isCircle
-        ? interpolate(progress, [0, 0.3], [CIRCLE_SIZE, 0])
+        ? interpolate(sp, [0, 0.3], [CIRCLE_SIZE, 0])
         : undefined,
       overflow: "hidden" as const,
     };
   });
+
+  const circleBgStyle = useAnimatedStyle(() => ({
+    opacity: circlePressed.get(),
+  }));
 
   const iconColor = isActive ? COLORS.iconActive : COLORS.iconDefault;
 
@@ -105,6 +144,15 @@ export default function TabIcon({
             style={[
               styles.activeBackground,
               isCircle && styles.circleBackground,
+            ]}
+          />
+        )}
+        {isCircle && (
+          <Animated.View
+            style={[
+              styles.activeBackground,
+              styles.circleBackground,
+              circleBgStyle,
             ]}
           />
         )}

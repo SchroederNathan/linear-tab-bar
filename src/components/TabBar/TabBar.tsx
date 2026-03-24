@@ -19,9 +19,11 @@ interface TabBarProps {
   activeTab: number;
   onTabPress: (index: number) => void;
   searchProgress: SharedValue<number>;
+  menuProgress: SharedValue<number>;
   isSearchActive: boolean;
   pillAnimatedStyle: AnimatedStyle;
   searchAnimatedStyle: AnimatedStyle;
+  searchButtonMenuStyle: AnimatedStyle;
   pillPressed: SharedValue<number>;
   overflowX: SharedValue<number>;
   overflowY: SharedValue<number>;
@@ -49,9 +51,11 @@ export default function TabBar({
   activeTab,
   onTabPress,
   searchProgress,
+  menuProgress,
   isSearchActive,
   pillAnimatedStyle,
   searchAnimatedStyle,
+  searchButtonMenuStyle,
   pillPressed,
   overflowX,
   overflowY,
@@ -75,7 +79,7 @@ export default function TabBar({
   closeComposedGesture,
 }: TabBarProps) {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Math.max(insets.bottom * 0.5, TAB_BAR_BOTTOM_PADDING);
+  const bottomPadding = Math.max(insets.bottom * 0.7, TAB_BAR_BOTTOM_PADDING);
   const { height } = useReanimatedKeyboardAnimation();
 
   const keyboardStyle = useAnimatedStyle(() => ({
@@ -83,43 +87,45 @@ export default function TabBar({
   }));
 
   return (
-    <Animated.View style={[styles.container, { paddingBottom: bottomPadding }, keyboardStyle]}>
-      <TabBarPill
-        activeTab={activeTab}
-        onTabPress={onTabPress}
-        searchProgress={searchProgress}
-        pillAnimatedStyle={pillAnimatedStyle}
-        pillPressed={pillPressed}
-        overflowX={overflowX}
-        overflowY={overflowY}
-        touchX={touchX}
-        touchY={touchY}
-        glowProgress={glowProgress}
-        panGesture={panGesture}
-      />
-      <SearchButton
-        searchProgress={searchProgress}
-        searchAnimatedStyle={searchAnimatedStyle}
-        isSearchActive={isSearchActive}
-        pressed={searchPressed}
-        overflowX={searchOverflowX}
-        overflowY={searchOverflowY}
-        touchX={searchTouchX}
-        touchY={searchTouchY}
-        glowProgress={searchGlowProgress}
-        composedGesture={searchComposedGesture}
-      />
-      <CloseSearchButton
-        searchProgress={searchProgress}
-        pressed={closePressed}
-        overflowX={closeOverflowX}
-        overflowY={closeOverflowY}
-        touchX={closeTouchX}
-        touchY={closeTouchY}
-        glowProgress={closeGlowProgress}
-        composedGesture={closeComposedGesture}
-      />
-    </Animated.View>
+      <Animated.View style={[styles.container, { paddingBottom: bottomPadding }, keyboardStyle]}>
+        <TabBarPill
+          activeTab={activeTab}
+          onTabPress={onTabPress}
+          searchProgress={searchProgress}
+          menuProgress={menuProgress}
+          pillAnimatedStyle={pillAnimatedStyle}
+          pillPressed={pillPressed}
+          overflowX={overflowX}
+          overflowY={overflowY}
+          touchX={touchX}
+          touchY={touchY}
+          glowProgress={glowProgress}
+          panGesture={panGesture}
+        />
+        <SearchButton
+          searchProgress={searchProgress}
+          searchAnimatedStyle={searchAnimatedStyle}
+          searchButtonMenuStyle={searchButtonMenuStyle}
+          isSearchActive={isSearchActive}
+          pressed={searchPressed}
+          overflowX={searchOverflowX}
+          overflowY={searchOverflowY}
+          touchX={searchTouchX}
+          touchY={searchTouchY}
+          glowProgress={searchGlowProgress}
+          composedGesture={searchComposedGesture}
+        />
+        <CloseSearchButton
+          searchProgress={searchProgress}
+          pressed={closePressed}
+          overflowX={closeOverflowX}
+          overflowY={closeOverflowY}
+          touchX={closeTouchX}
+          touchY={closeTouchY}
+          glowProgress={closeGlowProgress}
+          composedGesture={closeComposedGesture}
+        />
+      </Animated.View>
   );
 }
 

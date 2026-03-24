@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, View } from "react-native";
+import { useCallback } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -13,13 +14,25 @@ import { COLORS } from "./src/constants/theme";
 export default function App() {
   const {
     searchProgress,
+    menuProgress,
     activeTab,
     setActiveTab,
     isSearchActive,
+    isMenuOpen,
     toggleSearch,
+    toggleMenu,
     pillAnimatedStyle,
     searchAnimatedStyle,
+    searchButtonMenuStyle,
   } = useTabBarAnimation();
+
+  const handleTabPress = useCallback((index: number) => {
+    if (index === 3) {
+      toggleMenu();
+    } else {
+      setActiveTab(index);
+    }
+  }, [toggleMenu, setActiveTab]);
 
   const {
     pillPressed,
@@ -64,11 +77,13 @@ export default function App() {
           </View>
           <TabBar
             activeTab={activeTab}
-            onTabPress={setActiveTab}
+            onTabPress={handleTabPress}
             searchProgress={searchProgress}
+            menuProgress={menuProgress}
             isSearchActive={isSearchActive}
             pillAnimatedStyle={pillAnimatedStyle}
             searchAnimatedStyle={searchAnimatedStyle}
+            searchButtonMenuStyle={searchButtonMenuStyle}
             pillPressed={pillPressed}
             overflowX={overflowX}
             overflowY={overflowY}
@@ -91,6 +106,12 @@ export default function App() {
             closeGlowProgress={closeGlowProgress}
             closeComposedGesture={closeComposedGesture}
           />
+          {isMenuOpen && (
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={toggleMenu}
+            />
+          )}
           <StatusBar style="light" />
         </KeyboardProvider>
       </SafeAreaProvider>

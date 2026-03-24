@@ -23,3 +23,15 @@ export const SPRING_BOUNCY = {
   stiffness: 250,
   mass: 0.6,
 } as const;
+
+export const SPRING_MENU_OPEN = {
+  damping: 14,
+  stiffness: 170,
+  mass: 0.7,
+} as const;
+
+export const SPRING_MENU_CLOSE = {
+  damping: 22,
+  stiffness: 120,
+  mass: 0.9,
+} as const;

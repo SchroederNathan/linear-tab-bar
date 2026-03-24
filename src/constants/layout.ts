@@ -31,3 +31,9 @@ export const CLOSE_BUTTON_SIZE = SEARCH_BUTTON_SIZE;
 export const SEARCH_BAR_WIDTH = TOTAL_WIDTH - TAB_BAR_GAP - CLOSE_BUTTON_SIZE;
 
 export const TAB_BAR_BOTTOM_PADDING = 8;
+
+// Menu expansion
+export const MENU_WIDTH = TOTAL_WIDTH;
+export const MENU_HEIGHT = 420;
+export const MENU_BORDER_RADIUS = 28;
+export const MENU_ITEM_HEIGHT = 48;
