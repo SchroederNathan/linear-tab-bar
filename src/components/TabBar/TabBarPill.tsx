@@ -10,6 +10,7 @@ import { GestureDetector, type GestureType } from "react-native-gesture-handler"
 import Animated, {
   interpolate,
   useAnimatedStyle,
+  useDerivedValue,
   type AnimatedStyle,
   type SharedValue,
 } from "react-native-reanimated";
@@ -21,6 +22,7 @@ import Svg, {
 } from "react-native-svg";
 import {
   ICON_PADDING,
+  MENU_BORDER_RADIUS,
   PILL_BORDER_RADIUS,
   PILL_HEIGHT,
   PILL_WIDTH,
@@ -71,6 +73,10 @@ export default function TabBarPill({
   glowProgress,
   panGesture,
 }: TabBarPillProps) {
+  const animatedBorderRadius = useDerivedValue(() =>
+    interpolate(menuProgress.get(), [0, 0.8], [PILL_BORDER_RADIUS, MENU_BORDER_RADIUS], 'clamp')
+  );
+
   const pillGlassStyle = useAnimatedStyle(() => {
     const mp = menuProgress.get();
 
@@ -151,7 +157,7 @@ export default function TabBarPill({
           ]}
         >
           <GlassMaterial
-            borderRadius={PILL_BORDER_RADIUS}
+            borderRadius={animatedBorderRadius}
             style={styles.glassMaterial}
           >
             <View style={styles.iconsRow}>

@@ -35,5 +35,5 @@ export const TAB_BAR_BOTTOM_PADDING = 8;
 // Menu expansion
 export const MENU_WIDTH = TOTAL_WIDTH;
 export const MENU_HEIGHT = 420;
-export const MENU_BORDER_RADIUS = 28;
+export const MENU_BORDER_RADIUS = 38;
 export const MENU_ITEM_HEIGHT = 48;
