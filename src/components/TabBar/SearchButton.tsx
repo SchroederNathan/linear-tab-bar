@@ -1,20 +1,20 @@
 import { Search } from "lucide-react-native";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { StyleSheet, TextInput } from "react-native";
 import { GestureDetector, type ComposedGesture } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
-  useAnimatedReaction,
   useAnimatedStyle,
   type AnimatedStyle,
   type SharedValue,
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import {
   ICON_SIZE,
   ICON_STROKE_WIDTH,
   PILL_HEIGHT,
+  SEARCH_ACTIVE_HEIGHT,
+  SEARCH_ACTIVE_RADIUS,
   SEARCH_BAR_RADIUS,
   SEARCH_BUTTON_SIZE,
 } from "../../constants/layout";
@@ -59,28 +59,13 @@ export default function SearchButton({
 }: SearchButtonProps) {
   const inputRef = useRef<TextInput>(null);
 
-  const focusInput = useCallback(() => {
-    inputRef.current?.focus();
-  }, []);
 
-  const blurInput = useCallback(() => {
-    inputRef.current?.blur();
-  }, []);
-
-  // Auto-focus / blur based on search progress
-  useAnimatedReaction(
-    () => searchProgress.get(),
-    (current, previous) => {
-      if (previous !== null) {
-        if (current > 0.95 && previous <= 0.95) {
-          scheduleOnRN(focusInput);
-        }
-        if (current < 0.5 && previous >= 0.5) {
-          scheduleOnRN(blurInput);
-        }
-      }
-    },
-  );
+  // Focus immediately when search opens so keyboard animates in sync
+  useEffect(() => {
+    if (isSearchActive) {
+      inputRef.current?.focus();
+    }
+  }, [isSearchActive]);
 
   const glassStyle = useAnimatedStyle(() => {
     const pressScale = interpolate(pressed.get(), [0, 1], [1, 1.02]);
@@ -137,14 +122,24 @@ export default function SearchButton({
     };
   });
 
+  const heightStyle = useAnimatedStyle(() => {
+    const progress = searchProgress.get();
+    const h = interpolate(progress, [0, 1], [PILL_HEIGHT, SEARCH_ACTIVE_HEIGHT], "clamp");
+    const r = interpolate(progress, [0, 1], [SEARCH_BAR_RADIUS, SEARCH_ACTIVE_RADIUS], "clamp");
+    return {
+      height: h,
+      borderRadius: r,
+    };
+  });
+
   const inputOpacity = useAnimatedStyle(() => ({
     opacity: interpolate(searchProgress.get(), [0.4, 0.8], [0, 1]),
   }));
 
-  const iconVerticalOffset = (PILL_HEIGHT - ICON_SIZE) / 2;
-
   const iconStyle = useAnimatedStyle(() => {
     const progress = searchProgress.get();
+    const h = interpolate(progress, [0, 1], [PILL_HEIGHT, SEARCH_ACTIVE_HEIGHT], "clamp");
+    const iconVerticalOffset = (h - ICON_SIZE) / 2;
     return {
       position: "absolute" as const,
       top: iconVerticalOffset,
@@ -157,18 +152,18 @@ export default function SearchButton({
   });
 
   return (
-    <GestureDetector gesture={composedGesture}>
-      <Animated.View style={glassStyle}>
-        <Animated.View
-          style={[
-            searchAnimatedStyle,
-            styles.searchClip,
-            { borderRadius: SEARCH_BAR_RADIUS },
-          ]}
-        >
+    <Animated.View style={searchAnimatedStyle}>
+      <GestureDetector gesture={composedGesture}>
+        <Animated.View style={glassStyle}>
+          <Animated.View
+            style={[
+              styles.searchClip,
+              heightStyle,
+            ]}
+          >
           <GlassMaterial
             borderRadius={SEARCH_BAR_RADIUS}
-            style={styles.container}
+            style={[styles.container, heightStyle]}
           >
             <Animated.View style={iconStyle}>
               <Search
@@ -181,7 +176,7 @@ export default function SearchButton({
               <TextInput
                 ref={inputRef}
                 style={styles.input}
-                placeholder="Search..."
+                placeholder="Search Workspace"
                 placeholderTextColor={COLORS.textSecondary}
                 selectionColor={COLORS.accentBlue}
                 returnKeyType="search"
@@ -207,9 +202,10 @@ export default function SearchButton({
               />
             </Svg>
           </Animated.View>
+          </Animated.View>
         </Animated.View>
-      </Animated.View>
-    </GestureDetector>
+      </GestureDetector>
+    </Animated.View>
   );
 }
 
@@ -218,7 +214,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   container: {
-    height: PILL_HEIGHT,
     justifyContent: "center",
   },
   inputContainer: {

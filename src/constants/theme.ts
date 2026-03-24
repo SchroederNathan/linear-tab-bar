@@ -13,9 +13,9 @@ export const COLORS = {
 } as const;
 
 export const SPRING = {
-  damping: 20,
-  stiffness: 300,
-  mass: 0.8,
+  damping: 24,
+  stiffness: 170,
+  mass: 1,
 } as const;
 
 export const SPRING_BOUNCY = {

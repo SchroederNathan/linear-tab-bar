@@ -1,6 +1,7 @@
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View, type LayoutChangeEvent, type ViewStyle } from "react-native";
+import Animated, { type AnimatedStyle } from "react-native-reanimated";
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -100,7 +101,7 @@ function BorderSheen({ borderRadius }: BorderSheenProps) {
 
 interface GlassMaterialProps {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | AnimatedStyle | (ViewStyle | AnimatedStyle)[];
   borderRadius?: number;
 }
 
@@ -111,7 +112,7 @@ export default function GlassMaterial({ children, style, borderRadius = 32 }: Gl
   );
 
   return (
-    <View
+    <Animated.View
       style={[{ borderRadius, overflow: "hidden" }, style]}
       collapsable={false}
     >
@@ -126,7 +127,7 @@ export default function GlassMaterial({ children, style, borderRadius = 32 }: Gl
       <View style={styles.content} pointerEvents="box-none">
         {children}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

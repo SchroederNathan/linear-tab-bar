@@ -1,16 +1,17 @@
 import { StyleSheet } from "react-native";
 import { type GestureType, type ComposedGesture } from "react-native-gesture-handler";
 import Animated, {
+  useAnimatedStyle,
   type AnimatedStyle,
   type SharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller";
 import TabBarPill from "./TabBarPill";
 import SearchButton from "./SearchButton";
-import useKeyboardAnimation from "../../hooks/useKeyboardAnimation";
+import CloseSearchButton from "./CloseSearchButton";
 import {
   TAB_BAR_HORIZONTAL_PADDING,
-  TAB_BAR_GAP,
   TAB_BAR_BOTTOM_PADDING,
 } from "../../constants/layout";
 
@@ -19,7 +20,6 @@ interface TabBarProps {
   onTabPress: (index: number) => void;
   searchProgress: SharedValue<number>;
   isSearchActive: boolean;
-  toggleSearch: () => void;
   pillAnimatedStyle: AnimatedStyle;
   searchAnimatedStyle: AnimatedStyle;
   pillPressed: SharedValue<number>;
@@ -36,6 +36,13 @@ interface TabBarProps {
   searchTouchY: SharedValue<number>;
   searchGlowProgress: SharedValue<number>;
   searchComposedGesture: ComposedGesture;
+  closePressed: SharedValue<number>;
+  closeOverflowX: SharedValue<number>;
+  closeOverflowY: SharedValue<number>;
+  closeTouchX: SharedValue<number>;
+  closeTouchY: SharedValue<number>;
+  closeGlowProgress: SharedValue<number>;
+  closeComposedGesture: ComposedGesture;
 }
 
 export default function TabBar({
@@ -43,7 +50,6 @@ export default function TabBar({
   onTabPress,
   searchProgress,
   isSearchActive,
-  toggleSearch,
   pillAnimatedStyle,
   searchAnimatedStyle,
   pillPressed,
@@ -60,24 +66,29 @@ export default function TabBar({
   searchTouchY,
   searchGlowProgress,
   searchComposedGesture,
+  closePressed,
+  closeOverflowX,
+  closeOverflowY,
+  closeTouchX,
+  closeTouchY,
+  closeGlowProgress,
+  closeComposedGesture,
 }: TabBarProps) {
   const insets = useSafeAreaInsets();
-  const { keyboardAnimatedStyle } = useKeyboardAnimation();
+  const bottomPadding = Math.max(insets.bottom * 0.5, TAB_BAR_BOTTOM_PADDING);
+  const { height } = useReanimatedKeyboardAnimation();
+
+  const keyboardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: height.get() }],
+  }));
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        { paddingBottom: Math.max(insets.bottom, TAB_BAR_BOTTOM_PADDING) },
-        keyboardAnimatedStyle,
-      ]}
-    >
+    <Animated.View style={[styles.container, { paddingBottom: bottomPadding }, keyboardStyle]}>
       <TabBarPill
         activeTab={activeTab}
         onTabPress={onTabPress}
         searchProgress={searchProgress}
         pillAnimatedStyle={pillAnimatedStyle}
-        onBackPress={toggleSearch}
         pillPressed={pillPressed}
         overflowX={overflowX}
         overflowY={overflowY}
@@ -98,6 +109,16 @@ export default function TabBar({
         glowProgress={searchGlowProgress}
         composedGesture={searchComposedGesture}
       />
+      <CloseSearchButton
+        searchProgress={searchProgress}
+        pressed={closePressed}
+        overflowX={closeOverflowX}
+        overflowY={closeOverflowY}
+        touchX={closeTouchX}
+        touchY={closeTouchY}
+        glowProgress={closeGlowProgress}
+        composedGesture={closeComposedGesture}
+      />
     </Animated.View>
   );
 }
@@ -111,6 +132,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     paddingHorizontal: TAB_BAR_HORIZONTAL_PADDING,
-    gap: TAB_BAR_GAP,
   },
 });

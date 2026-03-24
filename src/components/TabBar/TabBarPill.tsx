@@ -46,7 +46,6 @@ interface TabBarPillProps {
   onTabPress: (index: number) => void;
   searchProgress: SharedValue<number>;
   pillAnimatedStyle: AnimatedStyle;
-  onBackPress: () => void;
   pillPressed: SharedValue<number>;
   overflowX: SharedValue<number>;
   overflowY: SharedValue<number>;
@@ -61,7 +60,6 @@ export default function TabBarPill({
   onTabPress,
   searchProgress,
   pillAnimatedStyle,
-  onBackPress,
   pillPressed,
   overflowX,
   overflowY,
@@ -152,7 +150,6 @@ export default function TabBarPill({
                   onPress={onTabPress}
                   searchProgress={searchProgress}
                   showDot={index === 3}
-                  onBackPress={onBackPress}
                   isCircle={index === 3}
                   pillPressed={pillPressed}
                   touchX={touchX}

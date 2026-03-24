@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
+import { Keyboard } from 'react-native';
 import { useSharedValue, withSpring, useAnimatedStyle, interpolate } from 'react-native-reanimated';
 import { SPRING } from '../constants/theme';
 import {
   PILL_WIDTH,
-  SEARCH_BUTTON_SIZE,
-  SEARCH_BAR_WIDTH,
+  TAB_BAR_GAP,
 } from '../constants/layout';
 
 export default function useTabBarAnimation() {
@@ -13,24 +13,29 @@ export default function useTabBarAnimation() {
   const [isSearchActive, setIsSearchActive] = useState(false);
 
   const toggleSearch = useCallback(() => {
-    const toValue = searchProgress.value < 0.5 ? 1 : 0;
-    searchProgress.value = withSpring(toValue, SPRING);
-    setIsSearchActive(toValue === 1);
+    const opening = searchProgress.value < 0.5;
+    if (!opening) {
+      Keyboard.dismiss();
+    }
+    searchProgress.value = withSpring(opening ? 1 : 0, SPRING);
+    setIsSearchActive(opening);
   }, [searchProgress]);
 
   const pillAnimatedStyle = useAnimatedStyle(() => {
     const progress = searchProgress.value;
     return {
-      width: interpolate(progress, [0, 1], [PILL_WIDTH, SEARCH_BUTTON_SIZE]),
+      width: interpolate(progress, [0, 0.6], [PILL_WIDTH, 0], 'clamp'),
+      opacity: interpolate(progress, [0, 0.3], [1, 0], 'clamp'),
+      marginRight: interpolate(progress, [0, 0.6], [TAB_BAR_GAP, 0], 'clamp'),
+      transform: [
+        { translateX: interpolate(progress, [0, 0.6], [0, -PILL_WIDTH * 0.3], 'clamp') },
+      ],
     };
   });
 
-  const searchAnimatedStyle = useAnimatedStyle(() => {
-    const progress = searchProgress.value;
-    return {
-      width: interpolate(progress, [0, 1], [SEARCH_BUTTON_SIZE, SEARCH_BAR_WIDTH]),
-    };
-  });
+  const searchAnimatedStyle = useAnimatedStyle(() => ({
+    flex: 1,
+  }));
 
   const getIconAnimatedStyle = useCallback((index: number) => {
     return () => {

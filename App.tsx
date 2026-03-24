@@ -45,6 +45,16 @@ export default function App() {
     composedGesture: searchComposedGesture,
   } = useSearchGestures(toggleSearch);
 
+  const {
+    pressed: closePressed,
+    overflowX: closeOverflowX,
+    overflowY: closeOverflowY,
+    touchX: closeTouchX,
+    touchY: closeTouchY,
+    glowProgress: closeGlowProgress,
+    composedGesture: closeComposedGesture,
+  } = useSearchGestures(toggleSearch);
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
@@ -57,7 +67,6 @@ export default function App() {
             onTabPress={setActiveTab}
             searchProgress={searchProgress}
             isSearchActive={isSearchActive}
-            toggleSearch={toggleSearch}
             pillAnimatedStyle={pillAnimatedStyle}
             searchAnimatedStyle={searchAnimatedStyle}
             pillPressed={pillPressed}
@@ -74,6 +83,13 @@ export default function App() {
             searchTouchY={searchTouchY}
             searchGlowProgress={searchGlowProgress}
             searchComposedGesture={searchComposedGesture}
+            closePressed={closePressed}
+            closeOverflowX={closeOverflowX}
+            closeOverflowY={closeOverflowY}
+            closeTouchX={closeTouchX}
+            closeTouchY={closeTouchY}
+            closeGlowProgress={closeGlowProgress}
+            closeComposedGesture={closeComposedGesture}
           />
           <StatusBar style="light" />
         </KeyboardProvider>

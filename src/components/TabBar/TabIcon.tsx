@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import { ArrowLeft, type LucideIcon } from "lucide-react-native";
+import { type LucideIcon } from "lucide-react-native";
 import { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -19,7 +19,7 @@ import {
 } from "../../constants/layout";
 import { COLORS } from "../../constants/theme";
 import { TAB_CENTER_XS } from "../../hooks/usePillGestures";
-import NotificationDot from "./NotificationDot";
+
 
 interface TabIconProps {
   index: number;
@@ -28,7 +28,6 @@ interface TabIconProps {
   onPress: (index: number) => void;
   searchProgress: SharedValue<number>;
   showDot: boolean;
-  onBackPress: () => void;
   isCircle: boolean;
   pillPressed: SharedValue<number>;
   touchX: SharedValue<number>;
@@ -43,7 +42,6 @@ export default function TabIcon({
   onPress,
   searchProgress,
   showDot,
-  onBackPress,
   isCircle,
   pillPressed,
   touchX,
@@ -55,12 +53,8 @@ export default function TabIcon({
   }, []);
 
   const handlePress = useCallback(() => {
-    if (index === 0 && onBackPress && searchProgress.get() > 0.5) {
-      onBackPress();
-    } else {
-      onPress(index);
-    }
-  }, [index, onPress, onBackPress, searchProgress]);
+    onPress(index);
+  }, [index, onPress]);
 
   const tap = Gesture.Tap()
     .onBegin(() => {
@@ -96,15 +90,6 @@ export default function TabIcon({
     };
   });
 
-  // Icon 0 crossfade: tab icon ↔ back arrow
-  const tabIconOpacity = useAnimatedStyle(() => ({
-    opacity: interpolate(searchProgress.get(), [0, 0.5], [1, 0]),
-  }));
-
-  const backIconOpacity = useAnimatedStyle(() => ({
-    opacity: interpolate(searchProgress.get(), [0.5, 1], [0, 1]),
-  }));
-
   const iconColor = isActive ? COLORS.iconActive : COLORS.iconDefault;
 
   return (
@@ -124,31 +109,11 @@ export default function TabIcon({
           />
         )}
         <View style={styles.iconWrapper}>
-          {index === 0 ? (
-            <>
-              <Animated.View style={[styles.iconAbsolute, tabIconOpacity]}>
-                <Icon
-                  size={ICON_SIZE}
-                  color={iconColor}
-                  strokeWidth={ICON_STROKE_WIDTH}
-                />
-              </Animated.View>
-              <Animated.View style={[styles.iconAbsolute, backIconOpacity]}>
-                <ArrowLeft
-                  size={ICON_SIZE}
-                  color={COLORS.iconActive}
-                  strokeWidth={ICON_STROKE_WIDTH}
-                />
-              </Animated.View>
-            </>
-          ) : (
-            <Icon
-              size={ICON_SIZE}
-              color={iconColor}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          )}
-          {showDot && <NotificationDot searchProgress={searchProgress} />}
+          <Icon
+            size={ICON_SIZE}
+            color={iconColor}
+            strokeWidth={ICON_STROKE_WIDTH}
+          />
         </View>
       </Animated.View>
     </GestureDetector>
@@ -185,8 +150,5 @@ const styles = StyleSheet.create({
     height: ICON_SIZE,
     alignItems: "center",
     justifyContent: "center",
-  },
-  iconAbsolute: {
-    position: "absolute",
   },
 });
