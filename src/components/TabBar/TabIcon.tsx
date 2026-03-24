@@ -4,9 +4,9 @@ import { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  cancelAnimation,
   interpolate,
   useAnimatedStyle,
-  useSharedValue,
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
@@ -18,6 +18,7 @@ import {
   PILL_HEIGHT,
 } from "../../constants/layout";
 import { COLORS } from "../../constants/theme";
+import { TAB_CENTER_XS } from "../../hooks/usePillGestures";
 import NotificationDot from "./NotificationDot";
 
 interface TabIconProps {
@@ -29,6 +30,10 @@ interface TabIconProps {
   showDot: boolean;
   onBackPress: () => void;
   isCircle: boolean;
+  pillPressed: SharedValue<number>;
+  touchX: SharedValue<number>;
+  touchY: SharedValue<number>;
+  glowProgress: SharedValue<number>;
 }
 
 export default function TabIcon({
@@ -40,16 +45,17 @@ export default function TabIcon({
   showDot,
   onBackPress,
   isCircle,
+  pillPressed,
+  touchX,
+  touchY,
+  glowProgress,
 }: TabIconProps) {
-  const pressed = useSharedValue(0);
-
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
   const handlePress = useCallback(() => {
-    // When search is active and this is icon 0, act as back button
-    if (index === 0 && onBackPress && searchProgress.value > 0.5) {
+    if (index === 0 && onBackPress && searchProgress.get() > 0.5) {
       onBackPress();
     } else {
       onPress(index);
@@ -58,27 +64,24 @@ export default function TabIcon({
 
   const tap = Gesture.Tap()
     .onBegin(() => {
-      pressed.value = withTiming(1, { duration: 80 });
+      touchX.set(TAB_CENTER_XS[index]);
+      touchY.set(PILL_HEIGHT / 2);
+      pillPressed.set(withTiming(1, { duration: 80 }));
+      cancelAnimation(glowProgress);
+      glowProgress.set(1);
     })
     .onFinalize(() => {
-      pressed.value = withTiming(0, { duration: 150 });
+      pillPressed.set(withTiming(0, { duration: 150 }));
+      glowProgress.set(withTiming(2, { duration: 300 }));
     })
     .onEnd(() => {
       scheduleOnRN(triggerHaptic);
       scheduleOnRN(handlePress);
     });
 
-  const pressAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(pressed.value, [0, 1], [1, 0.9]) }],
-  }));
-
-  const pressBackgroundStyle = useAnimatedStyle(() => ({
-    opacity: pressed.value,
-  }));
-
   // Fade out icons 1-3 during search transition and collapse their width
   const iconAnimatedStyle = useAnimatedStyle(() => {
-    const progress = searchProgress.value;
+    const progress = searchProgress.get();
     if (index === 0) {
       return { opacity: 1, transform: [{ scale: 1 }] };
     }
@@ -95,11 +98,11 @@ export default function TabIcon({
 
   // Icon 0 crossfade: tab icon ↔ back arrow
   const tabIconOpacity = useAnimatedStyle(() => ({
-    opacity: interpolate(searchProgress.value, [0, 0.5], [1, 0]),
+    opacity: interpolate(searchProgress.get(), [0, 0.5], [1, 0]),
   }));
 
   const backIconOpacity = useAnimatedStyle(() => ({
-    opacity: interpolate(searchProgress.value, [0.5, 1], [0, 1]),
+    opacity: interpolate(searchProgress.get(), [0.5, 1], [0, 1]),
   }));
 
   const iconColor = isActive ? COLORS.iconActive : COLORS.iconDefault;
@@ -109,12 +112,17 @@ export default function TabIcon({
       <Animated.View
         style={[
           isCircle ? styles.circleContainer : styles.container,
-          pressAnimatedStyle,
           iconAnimatedStyle,
         ]}
       >
-        {isActive && <View style={[styles.activeBackground, isCircle && styles.circleBackground]} />}
-        {!isActive && <Animated.View style={[styles.activeBackground, pressBackgroundStyle, isCircle && styles.circleBackground]} />}
+        {isActive && (
+          <View
+            style={[
+              styles.activeBackground,
+              isCircle && styles.circleBackground,
+            ]}
+          />
+        )}
         <View style={styles.iconWrapper}>
           {index === 0 ? (
             <>
@@ -134,7 +142,11 @@ export default function TabIcon({
               </Animated.View>
             </>
           ) : (
-            <Icon size={ICON_SIZE} color={iconColor} strokeWidth={ICON_STROKE_WIDTH} />
+            <Icon
+              size={ICON_SIZE}
+              color={iconColor}
+              strokeWidth={ICON_STROKE_WIDTH}
+            />
           )}
           {showDot && <NotificationDot searchProgress={searchProgress} />}
         </View>

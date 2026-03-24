@@ -17,3 +17,9 @@ export const SPRING = {
   stiffness: 300,
   mass: 0.8,
 } as const;
+
+export const SPRING_BOUNCY = {
+  damping: 22,
+  stiffness: 250,
+  mass: 0.6,
+} as const;

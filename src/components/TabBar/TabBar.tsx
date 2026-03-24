@@ -1,14 +1,18 @@
-import { StyleSheet } from 'react-native';
-import Animated, { type AnimatedStyle, type SharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TabBarPill from './TabBarPill';
-import SearchButton from './SearchButton';
-import useKeyboardAnimation from '../../hooks/useKeyboardAnimation';
+import { StyleSheet } from "react-native";
+import { type GestureType, type ComposedGesture } from "react-native-gesture-handler";
+import Animated, {
+  type AnimatedStyle,
+  type SharedValue,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import TabBarPill from "./TabBarPill";
+import SearchButton from "./SearchButton";
+import useKeyboardAnimation from "../../hooks/useKeyboardAnimation";
 import {
   TAB_BAR_HORIZONTAL_PADDING,
   TAB_BAR_GAP,
   TAB_BAR_BOTTOM_PADDING,
-} from '../../constants/layout';
+} from "../../constants/layout";
 
 interface TabBarProps {
   activeTab: number;
@@ -18,6 +22,20 @@ interface TabBarProps {
   toggleSearch: () => void;
   pillAnimatedStyle: AnimatedStyle;
   searchAnimatedStyle: AnimatedStyle;
+  pillPressed: SharedValue<number>;
+  overflowX: SharedValue<number>;
+  overflowY: SharedValue<number>;
+  touchX: SharedValue<number>;
+  touchY: SharedValue<number>;
+  glowProgress: SharedValue<number>;
+  panGesture: GestureType;
+  searchPressed: SharedValue<number>;
+  searchOverflowX: SharedValue<number>;
+  searchOverflowY: SharedValue<number>;
+  searchTouchX: SharedValue<number>;
+  searchTouchY: SharedValue<number>;
+  searchGlowProgress: SharedValue<number>;
+  searchComposedGesture: ComposedGesture;
 }
 
 export default function TabBar({
@@ -28,6 +46,20 @@ export default function TabBar({
   toggleSearch,
   pillAnimatedStyle,
   searchAnimatedStyle,
+  pillPressed,
+  overflowX,
+  overflowY,
+  touchX,
+  touchY,
+  glowProgress,
+  panGesture,
+  searchPressed,
+  searchOverflowX,
+  searchOverflowY,
+  searchTouchX,
+  searchTouchY,
+  searchGlowProgress,
+  searchComposedGesture,
 }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { keyboardAnimatedStyle } = useKeyboardAnimation();
@@ -46,12 +78,25 @@ export default function TabBar({
         searchProgress={searchProgress}
         pillAnimatedStyle={pillAnimatedStyle}
         onBackPress={toggleSearch}
+        pillPressed={pillPressed}
+        overflowX={overflowX}
+        overflowY={overflowY}
+        touchX={touchX}
+        touchY={touchY}
+        glowProgress={glowProgress}
+        panGesture={panGesture}
       />
       <SearchButton
         searchProgress={searchProgress}
         searchAnimatedStyle={searchAnimatedStyle}
-        onToggleSearch={toggleSearch}
         isSearchActive={isSearchActive}
+        pressed={searchPressed}
+        overflowX={searchOverflowX}
+        overflowY={searchOverflowY}
+        touchX={searchTouchX}
+        touchY={searchTouchY}
+        glowProgress={searchGlowProgress}
+        composedGesture={searchComposedGesture}
       />
     </Animated.View>
   );
@@ -59,12 +104,12 @@ export default function TabBar({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: TAB_BAR_HORIZONTAL_PADDING,
     gap: TAB_BAR_GAP,
   },
