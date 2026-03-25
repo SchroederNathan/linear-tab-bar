@@ -20,10 +20,13 @@ const TABS_START = ICON_PADDING;
 const TABS_END = PILL_WIDTH - ICON_PADDING - CIRCLE_SIZE;
 const TAB_ZONE_WIDTH = (TABS_END - TABS_START) / 3;
 
+const MENU_DRAG_THRESHOLD = -50; // px upward to trigger menu
+
 export default function usePillGestures(
   activeTab: number,
   setActiveTab: (index: number) => void,
   searchProgress: SharedValue<number>,
+  menuProgress: SharedValue<number>,
   toggleMenu: () => void,
 ) {
   const pillPressed = useSharedValue(0);
@@ -33,6 +36,7 @@ export default function usePillGestures(
   const touchY = useSharedValue(PILL_HEIGHT / 2);
   const glowProgress = useSharedValue(0);
   const hoveredTab = useSharedValue(-1);
+  const menuTriggeredByDrag = useSharedValue(false);
 
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -112,6 +116,25 @@ export default function usePillGestures(
 
         if (searchProgress.get() >= 0.5) return;
 
+        // Drag up past threshold → open menu
+        if (
+          ovY < MENU_DRAG_THRESHOLD &&
+          !menuTriggeredByDrag.get() &&
+          menuProgress.get() < 0.5
+        ) {
+          menuTriggeredByDrag.set(true);
+          hoveredTab.set(-1);
+          scheduleOnRN(toggleMenu);
+          scheduleOnRN(triggerHaptic);
+          // Spring overflow back immediately
+          overflowX.set(withSpring(0, SPRING_BOUNCY));
+          overflowY.set(withSpring(0, SPRING_BOUNCY));
+          pillPressed.set(withTiming(0, { duration: 150 }));
+          return;
+        }
+
+        if (menuTriggeredByDrag.get()) return;
+
         if (ovX === 0 && ovY === 0) {
           const newTab = detectAnyTab(x);
           if (newTab !== hoveredTab.get()) {
@@ -125,6 +148,9 @@ export default function usePillGestures(
         }
       })
       .onEnd(() => {
+        const wasDragMenu = menuTriggeredByDrag.get();
+        menuTriggeredByDrag.set(false);
+
         const commitTab = hoveredTab.get();
         hoveredTab.set(-1);
         pillPressed.set(withTiming(0, { duration: 150 }));
@@ -132,6 +158,7 @@ export default function usePillGestures(
         overflowX.set(withSpring(0, SPRING_BOUNCY));
         overflowY.set(withSpring(0, SPRING_BOUNCY));
 
+        if (wasDragMenu) return;
         if (searchProgress.get() >= 0.5) return;
 
         if (commitTab >= 0 && commitTab <= 2) {
@@ -153,8 +180,10 @@ export default function usePillGestures(
     pillPressed,
     glowProgress,
     hoveredTab,
+    menuTriggeredByDrag,
     detectAnyTab,
     searchProgress,
+    menuProgress,
     toggleMenu,
     triggerHaptic,
     pendingTab,

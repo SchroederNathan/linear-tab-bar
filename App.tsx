@@ -47,6 +47,7 @@ export default function App() {
     activeTab,
     setActiveTab,
     searchProgress,
+    menuProgress,
     toggleMenu,
   );
 
