@@ -22,8 +22,6 @@ interface TabBarProps {
   menuProgress: SharedValue<number>;
   isSearchActive: boolean;
   pillAnimatedStyle: AnimatedStyle;
-  searchAnimatedStyle: AnimatedStyle;
-  searchButtonMenuStyle: AnimatedStyle;
   pillPressed: SharedValue<number>;
   overflowX: SharedValue<number>;
   overflowY: SharedValue<number>;
@@ -55,8 +53,6 @@ export default function TabBar({
   menuProgress,
   isSearchActive,
   pillAnimatedStyle,
-  searchAnimatedStyle,
-  searchButtonMenuStyle,
   pillPressed,
   overflowX,
   overflowY,
@@ -107,8 +103,6 @@ export default function TabBar({
         />
         <SearchButton
           searchProgress={searchProgress}
-          searchAnimatedStyle={searchAnimatedStyle}
-          searchButtonMenuStyle={searchButtonMenuStyle}
           isSearchActive={isSearchActive}
           pressed={searchPressed}
           overflowX={searchOverflowX}

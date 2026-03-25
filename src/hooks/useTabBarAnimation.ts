@@ -11,7 +11,6 @@ import { SPRING, SPRING_MENU_OPEN, SPRING_MENU_CLOSE } from '../constants/theme'
 import {
   MENU_BORDER_RADIUS,
   MENU_HEIGHT,
-  MENU_WIDTH,
   PILL_BORDER_RADIUS,
   PILL_HEIGHT,
   PILL_WIDTH,
@@ -27,30 +26,30 @@ export default function useTabBarAnimation() {
 
   const toggleSearch = useCallback(() => {
     // Guard: don't open search while menu is open
-    if (menuProgress.value > 0.5) return;
-    const opening = searchProgress.value < 0.5;
+    if (menuProgress.get() > 0.5) return;
+    const opening = searchProgress.get() < 0.5;
     if (!opening) {
       Keyboard.dismiss();
     }
-    searchProgress.value = withSpring(opening ? 1 : 0, SPRING);
+    searchProgress.set(withSpring(opening ? 1 : 0, SPRING));
     setIsSearchActive(opening);
   }, [searchProgress, menuProgress]);
 
   const toggleMenu = useCallback(() => {
     // Guard: don't open menu while search is active
-    if (searchProgress.value > 0.5) return;
-    const opening = menuProgress.value < 0.5;
+    if (searchProgress.get() > 0.5) return;
+    const opening = menuProgress.get() < 0.5;
     cancelAnimation(menuProgress);
-    menuProgress.value = withSpring(
+    menuProgress.set(withSpring(
       opening ? 1 : 0,
       opening ? SPRING_MENU_OPEN : SPRING_MENU_CLOSE,
-    );
+    ));
     setIsMenuOpen(opening);
   }, [menuProgress, searchProgress]);
 
   const pillAnimatedStyle = useAnimatedStyle(() => {
-    const sp = searchProgress.value;
-    const mp = menuProgress.value;
+    const sp = searchProgress.get();
+    const mp = menuProgress.get();
 
     const isMenu = mp > 0.01;
 
@@ -105,14 +104,6 @@ export default function useTabBarAnimation() {
     };
   });
 
-  const searchAnimatedStyle = useAnimatedStyle(() => ({
-    flex: 1,
-  }));
-
-  const searchButtonMenuStyle = useAnimatedStyle(() => ({
-    opacity: 1,
-  }));
-
   return {
     searchProgress,
     menuProgress,
@@ -123,7 +114,5 @@ export default function useTabBarAnimation() {
     toggleSearch,
     toggleMenu,
     pillAnimatedStyle,
-    searchAnimatedStyle,
-    searchButtonMenuStyle,
   };
 }

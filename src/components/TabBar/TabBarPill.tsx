@@ -27,16 +27,13 @@ import {
   PILL_HEIGHT,
   PILL_WIDTH,
 } from "../../constants/layout";
+import { liquidGlassTransform } from "../../utils/liquidGlass";
 import GlassMaterial from "./GlassMaterial";
 import MenuPanel from "./MenuPanel";
 import TabIcon from "./TabIcon";
 
 const TAB_ICONS: LucideIcon[] = [Box, ScanFace, Star, ChevronsUpDown];
 
-// Liquid glass stretch constants
-const MAX_PULL = 60;
-const MAX_STRETCH = 0.1;
-const MAX_COMPRESS = 0.12;
 const HALF_W = PILL_WIDTH / 2;
 const HALF_H = PILL_HEIGHT / 2;
 
@@ -80,10 +77,8 @@ export default function TabBarPill({
   );
 
   const pillGlassStyle = useAnimatedStyle(() => {
-    const mp = menuProgress.get();
-
     // Disable stretch when menu is open
-    if (mp > 0.5) {
+    if (menuProgress.get() > 0.5) {
       return {
         transform: [
           { translateX: 0 },
@@ -94,39 +89,9 @@ export default function TabBarPill({
       };
     }
 
-    const pressScale = interpolate(pillPressed.get(), [0, 1], [1, 1.02]);
-
-    const ox = overflowX.get();
-    const oy = overflowY.get();
-
-    const signX = ox < 0 ? -1 : 1;
-    const dampedX = signX * MAX_PULL * (1 - 1 / (Math.abs(ox) / MAX_PULL + 1));
-    const signY = oy < 0 ? -1 : 1;
-    const dampedY = signY * MAX_PULL * (1 - 1 / (Math.abs(oy) / MAX_PULL + 1));
-
-    const absDX = Math.abs(dampedX);
-    const absDY = Math.abs(dampedY);
-
-    const stretchX = interpolate(absDX, [0, MAX_PULL], [0, MAX_STRETCH], "clamp");
-    const stretchY = interpolate(absDY, [0, MAX_PULL], [0, MAX_STRETCH], "clamp");
-
-    const compressX = interpolate(absDY, [0, MAX_PULL], [0, MAX_COMPRESS], "clamp");
-    const compressY = interpolate(absDX, [0, MAX_PULL], [0, MAX_COMPRESS], "clamp");
-
-    const scaleX = pressScale * (1 + stretchX) * (1 - compressX);
-    const scaleY = pressScale * (1 + stretchY) * (1 - compressY);
-
-    const translateX = signX * HALF_W * stretchX;
-    const translateY = signY * HALF_H * stretchY;
-
-    return {
-      transform: [
-        { translateX },
-        { translateY },
-        { scaleX },
-        { scaleY },
-      ],
-    };
+    return liquidGlassTransform(
+      pillPressed.get(), overflowX.get(), overflowY.get(), HALF_W, HALF_H,
+    );
   });
 
   const glowStyle = useAnimatedStyle(() => {

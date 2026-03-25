@@ -1,11 +1,11 @@
 import { Search } from "lucide-react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet, TextInput } from "react-native";
 import { GestureDetector, type ComposedGesture } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
   useAnimatedStyle,
-  type AnimatedStyle,
+  useDerivedValue,
   type SharedValue,
 } from "react-native-reanimated";
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
@@ -19,12 +19,9 @@ import {
   SEARCH_BUTTON_SIZE,
 } from "../../constants/layout";
 import { COLORS } from "../../constants/theme";
+import { liquidGlassTransform } from "../../utils/liquidGlass";
 import GlassMaterial from "./GlassMaterial";
 
-// Stretch constants (same logic as pill)
-const MAX_PULL = 60;
-const MAX_STRETCH = 0.1;
-const MAX_COMPRESS = 0.12;
 const HALF_W = SEARCH_BUTTON_SIZE / 2;
 const HALF_H = PILL_HEIGHT / 2;
 
@@ -34,8 +31,6 @@ const GLOW_HALF = GLOW_SIZE / 2;
 
 interface SearchButtonProps {
   searchProgress: SharedValue<number>;
-  searchAnimatedStyle: AnimatedStyle;
-  searchButtonMenuStyle?: AnimatedStyle;
   isSearchActive: boolean;
   pressed: SharedValue<number>;
   overflowX: SharedValue<number>;
@@ -48,8 +43,6 @@ interface SearchButtonProps {
 
 export default function SearchButton({
   searchProgress,
-  searchAnimatedStyle,
-  searchButtonMenuStyle,
   isSearchActive,
   pressed,
   overflowX,
@@ -69,41 +62,16 @@ export default function SearchButton({
     }
   }, [isSearchActive]);
 
-  const glassStyle = useAnimatedStyle(() => {
-    const pressScale = interpolate(pressed.get(), [0, 1], [1, 1.02]);
+  const searchHeight = useDerivedValue(() =>
+    interpolate(searchProgress.get(), [0, 1], [PILL_HEIGHT, SEARCH_ACTIVE_HEIGHT], "clamp")
+  );
+  const searchRadius = useDerivedValue(() =>
+    interpolate(searchProgress.get(), [0, 1], [SEARCH_BAR_RADIUS, SEARCH_ACTIVE_RADIUS], "clamp")
+  );
 
-    const ox = overflowX.get();
-    const oy = overflowY.get();
-
-    const signX = ox < 0 ? -1 : 1;
-    const dampedX = signX * MAX_PULL * (1 - 1 / (Math.abs(ox) / MAX_PULL + 1));
-    const signY = oy < 0 ? -1 : 1;
-    const dampedY = signY * MAX_PULL * (1 - 1 / (Math.abs(oy) / MAX_PULL + 1));
-
-    const absDX = Math.abs(dampedX);
-    const absDY = Math.abs(dampedY);
-
-    const stretchX = interpolate(absDX, [0, MAX_PULL], [0, MAX_STRETCH], "clamp");
-    const stretchY = interpolate(absDY, [0, MAX_PULL], [0, MAX_STRETCH], "clamp");
-
-    const compressX = interpolate(absDY, [0, MAX_PULL], [0, MAX_COMPRESS], "clamp");
-    const compressY = interpolate(absDX, [0, MAX_PULL], [0, MAX_COMPRESS], "clamp");
-
-    const scaleX = pressScale * (1 + stretchX) * (1 - compressX);
-    const scaleY = pressScale * (1 + stretchY) * (1 - compressY);
-
-    const translateX = signX * HALF_W * stretchX;
-    const translateY = signY * HALF_H * stretchY;
-
-    return {
-      transform: [
-        { translateX },
-        { translateY },
-        { scaleX },
-        { scaleY },
-      ],
-    };
-  });
+  const glassStyle = useAnimatedStyle(() =>
+    liquidGlassTransform(pressed.get(), overflowX.get(), overflowY.get(), HALF_W, HALF_H)
+  );
 
   const glowStyle = useAnimatedStyle(() => {
     const progress = glowProgress.get();
@@ -124,37 +92,27 @@ export default function SearchButton({
     };
   });
 
-  const heightStyle = useAnimatedStyle(() => {
-    const progress = searchProgress.get();
-    const h = interpolate(progress, [0, 1], [PILL_HEIGHT, SEARCH_ACTIVE_HEIGHT], "clamp");
-    const r = interpolate(progress, [0, 1], [SEARCH_BAR_RADIUS, SEARCH_ACTIVE_RADIUS], "clamp");
-    return {
-      height: h,
-      borderRadius: r,
-    };
-  });
+  const heightStyle = useAnimatedStyle(() => ({
+    height: searchHeight.get(),
+    borderRadius: searchRadius.get(),
+  }));
 
   const inputOpacity = useAnimatedStyle(() => ({
     opacity: interpolate(searchProgress.get(), [0.4, 0.8], [0, 1]),
   }));
 
-  const iconStyle = useAnimatedStyle(() => {
-    const progress = searchProgress.get();
-    const h = interpolate(progress, [0, 1], [PILL_HEIGHT, SEARCH_ACTIVE_HEIGHT], "clamp");
-    const iconVerticalOffset = (h - ICON_SIZE) / 2;
-    return {
-      position: "absolute" as const,
-      top: iconVerticalOffset,
-      left: interpolate(
-        progress,
-        [0, 1],
-        [(SEARCH_BUTTON_SIZE - ICON_SIZE) / 2, 16],
-      ),
-    };
-  });
+  const iconStyle = useAnimatedStyle(() => ({
+    position: "absolute" as const,
+    top: (searchHeight.get() - ICON_SIZE) / 2,
+    left: interpolate(
+      searchProgress.get(),
+      [0, 1],
+      [(SEARCH_BUTTON_SIZE - ICON_SIZE) / 2, 16],
+    ),
+  }));
 
   return (
-    <Animated.View style={[searchAnimatedStyle, searchButtonMenuStyle]}>
+    <Animated.View style={styles.searchWrapper}>
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={glassStyle}>
           <Animated.View
@@ -227,6 +185,9 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontSize: 16,
     height: "100%",
+  },
+  searchWrapper: {
+    flex: 1,
   },
   glowContainer: {
     position: "absolute",

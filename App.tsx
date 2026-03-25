@@ -22,8 +22,6 @@ export default function App() {
     toggleSearch,
     toggleMenu,
     pillAnimatedStyle,
-    searchAnimatedStyle,
-    searchButtonMenuStyle,
   } = useTabBarAnimation();
 
   const handleTabPress = useCallback((index: number) => {
@@ -91,8 +89,6 @@ export default function App() {
             menuProgress={menuProgress}
             isSearchActive={isSearchActive}
             pillAnimatedStyle={pillAnimatedStyle}
-            searchAnimatedStyle={searchAnimatedStyle}
-            searchButtonMenuStyle={searchButtonMenuStyle}
             pillPressed={pillPressed}
             overflowX={overflowX}
             overflowY={overflowY}

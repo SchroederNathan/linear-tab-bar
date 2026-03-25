@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { type LucideIcon } from "lucide-react-native";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -64,7 +64,7 @@ export default function TabIcon({
     onPress(index);
   }, [index, onPress]);
 
-  const tap = Gesture.Tap()
+  const tap = useMemo(() => Gesture.Tap()
     .onBegin(() => {
       touchX.set(TAB_CENTER_XS[index]);
       touchY.set(PILL_HEIGHT / 2);
@@ -91,7 +91,7 @@ export default function TabIcon({
       if (!isCircle) {
         scheduleOnRN(handlePress);
       }
-    });
+    }), [triggerHaptic, handlePress]);
 
   // Fade out icons during search or menu transition
   const iconAnimatedStyle = useAnimatedStyle(() => {

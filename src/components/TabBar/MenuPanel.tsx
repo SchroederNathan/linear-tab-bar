@@ -10,6 +10,7 @@ import {
   type LucideIcon,
   ChevronsUpDown,
 } from "lucide-react-native";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   interpolate,
@@ -48,7 +49,7 @@ interface MenuPanelProps {
   menuProgress: SharedValue<number>;
 }
 
-function MenuItem({
+const MenuItem = React.memo(function MenuItem({
   item,
   itemProgress,
 }: {
@@ -83,7 +84,7 @@ function MenuItem({
       <Text style={styles.menuItemLabel}>{item.label}</Text>
     </Animated.View>
   );
-}
+});
 
 export default function MenuPanel({ menuProgress }: MenuPanelProps) {
   // Individual progress values: header, divider, 7 menu items
