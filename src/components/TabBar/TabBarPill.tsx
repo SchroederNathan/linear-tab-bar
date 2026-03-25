@@ -6,7 +6,7 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
-import { GestureDetector, type GestureType } from "react-native-gesture-handler";
+import { GestureDetector, type GestureType, type ComposedGesture } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -54,7 +54,7 @@ interface TabBarPillProps {
   touchY: SharedValue<number>;
   glowProgress: SharedValue<number>;
   hoveredTab: SharedValue<number>;
-  panGesture: GestureType;
+  panGesture: ComposedGesture | GestureType;
 }
 
 export default function TabBarPill({

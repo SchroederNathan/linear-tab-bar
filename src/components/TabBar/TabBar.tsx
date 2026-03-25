@@ -29,7 +29,7 @@ interface TabBarProps {
   touchY: SharedValue<number>;
   glowProgress: SharedValue<number>;
   hoveredTab: SharedValue<number>;
-  panGesture: GestureType;
+  panGesture: ComposedGesture | GestureType;
   searchPressed: SharedValue<number>;
   searchOverflowX: SharedValue<number>;
   searchOverflowY: SharedValue<number>;
