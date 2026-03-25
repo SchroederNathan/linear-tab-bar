@@ -8,9 +8,9 @@ Built with Expo, React Native Reanimated, and Gesture Handler.
 
 ## Demo
 
-<video src="https://github.com/SchroederNathan/linear-tab-bar/raw/main/assets/linear-tabbar.mp4" controls playsinline width="100%"></video>
+GitHub READMEs do not embed MP4s from the repo; this GIF matches the screen recording.
 
-[Download MP4](assets/linear-tabbar.mp4) when viewing a local clone
+![Liquid glass tab bar demo](assets/linear-tabbar-demo.gif)
 
 ## Features
 
