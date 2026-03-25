@@ -21,8 +21,7 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
-import { MENU_ITEM_HEIGHT } from "../../constants/layout";
-import { COLORS } from "../../constants/theme";
+import { MENU_ITEM_HEIGHT, COLORS } from "./constants";
 
 interface MenuItemData {
   icon: LucideIcon;

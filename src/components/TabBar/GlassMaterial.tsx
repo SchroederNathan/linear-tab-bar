@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle, type SharedValue, useAnimatedStyle } from "react-native-reanimated";
 import MaskedView from "@react-native-masked-view/masked-view";
-import { COLORS } from "../../constants/theme";
+import { COLORS } from "./constants";
 import { type ReactNode, useMemo } from "react";
 
 const FILL_GRADIENT_START = { x: 0.5, y: 0 };

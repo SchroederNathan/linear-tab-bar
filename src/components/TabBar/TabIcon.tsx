@@ -13,14 +13,14 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import {
+  COLORS,
   ICON_SIZE,
   ICON_STROKE_WIDTH,
   PILL_BORDER_RADIUS,
   PILL_HEIGHT,
   PILL_WIDTH,
-} from "../../constants/layout";
-import { COLORS } from "../../constants/theme";
-import { TAB_CENTER_XS } from "../../hooks/usePillGestures";
+  TAB_CENTER_XS,
+} from "./constants";
 
 
 interface TabIconProps {

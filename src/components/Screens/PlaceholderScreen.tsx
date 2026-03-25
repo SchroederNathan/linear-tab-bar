@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { COLORS } from '../TabBar/constants';
 
 interface Screen {
   name: string;
