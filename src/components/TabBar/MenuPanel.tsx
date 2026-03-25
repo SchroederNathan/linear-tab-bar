@@ -40,9 +40,9 @@ const MENU_ITEMS: MenuItemData[] = [
 ];
 
 const STAGGER_IN_MS = 40;
-const STAGGER_OUT_MS = 20;
+const STAGGER_OUT_MS = 10;
 const ITEM_IN_DURATION = 250;
-const ITEM_OUT_DURATION = 150;
+const ITEM_OUT_DURATION = 80;
 
 interface MenuPanelProps {
   menuProgress: SharedValue<number>;
@@ -124,7 +124,7 @@ export default function MenuPanel({ menuProgress }: MenuPanelProps) {
         itemProgresses[6].set(withDelay(8 * STAGGER_IN_MS, withTiming(1, { duration: ITEM_IN_DURATION })));
       } else if (!goingUp && current < 0.95 && wasOpen.get()) {
         wasOpen.set(false);
-        containerProgress.set(withTiming(0, { duration: 250 }));
+        containerProgress.set(withTiming(0, { duration: 150 }));
         // Stagger out bottom-to-top (reverse order)
         itemProgresses[6].set(withDelay(0 * STAGGER_OUT_MS, withTiming(0, { duration: ITEM_OUT_DURATION })));
         itemProgresses[5].set(withDelay(1 * STAGGER_OUT_MS, withTiming(0, { duration: ITEM_OUT_DURATION })));
@@ -139,9 +139,16 @@ export default function MenuPanel({ menuProgress }: MenuPanelProps) {
     },
   );
 
-  const containerStyle = useAnimatedStyle(() => ({
-    opacity: containerProgress.get(),
-  }));
+  const containerStyle = useAnimatedStyle(() => {
+    const p = menuProgress.get();
+    return {
+      opacity: p,
+      transform: [
+        { scale: interpolate(p, [0, 1], [0.8, 1]) },
+        { translateY: interpolate(p, [0, 1], [-200, 0]) },
+      ],
+    };
+  });
 
   const headerStyle = useAnimatedStyle(() => {
     const p = headerProgress.get();

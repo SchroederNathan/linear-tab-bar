@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -50,6 +50,12 @@ export default function App() {
     menuProgress,
     toggleMenu,
   );
+
+  // Reset hoveredTab only after React has re-rendered with the new activeTab,
+  // so the old tab's active background never flashes.
+  useEffect(() => {
+    hoveredTab.set(-1);
+  }, [activeTab, hoveredTab]);
 
   const {
     pressed: searchPressed,

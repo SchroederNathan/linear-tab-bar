@@ -152,22 +152,32 @@ export default function usePillGestures(
         menuTriggeredByDrag.set(false);
 
         const commitTab = hoveredTab.get();
-        hoveredTab.set(-1);
         pillPressed.set(withTiming(0, { duration: 150 }));
         glowProgress.set(withTiming(2, { duration: 300 }));
         overflowX.set(withSpring(0, SPRING_BOUNCY));
         overflowY.set(withSpring(0, SPRING_BOUNCY));
 
-        if (wasDragMenu) return;
-        if (searchProgress.get() >= 0.5) return;
+        if (wasDragMenu) {
+          hoveredTab.set(-1);
+          return;
+        }
+        if (searchProgress.get() >= 0.5) {
+          hoveredTab.set(-1);
+          return;
+        }
 
         if (commitTab >= 0 && commitTab <= 2) {
+          // Keep hoveredTab on the new tab until React state catches up,
+          // so the old tab's active bg doesn't flash.
           pendingTab.set(commitTab);
           scheduleOnRN(applyPendingTab);
           scheduleOnRN(triggerHaptic);
-        } else if (commitTab === 3) {
-          scheduleOnRN(toggleMenu);
-          scheduleOnRN(triggerHaptic);
+        } else {
+          hoveredTab.set(-1);
+          if (commitTab === 3) {
+            scheduleOnRN(toggleMenu);
+            scheduleOnRN(triggerHaptic);
+          }
         }
       });
 
