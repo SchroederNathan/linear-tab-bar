@@ -2,12 +2,15 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle, type SharedValue, useAnimatedStyle } from "react-native-reanimated";
+import MaskedView from "@react-native-masked-view/masked-view";
 import { COLORS } from "../../constants/theme";
 import { type ReactNode, useMemo } from "react";
 
 const FILL_GRADIENT_START = { x: 0.5, y: 0 };
 const FILL_GRADIENT_END = { x: 0.5, y: 1 };
 
+const BORDER_GRADIENT_START = { x: 0.49, y: 0 };
+const BORDER_GRADIENT_END = { x: 0.51, y: 1 };
 interface GlassMaterialProps {
   children: ReactNode;
   style?: ViewStyle | AnimatedStyle | (ViewStyle | AnimatedStyle)[];
@@ -28,7 +31,7 @@ export default function GlassMaterial({ children, style, borderRadius = 32 }: Gl
     return { borderRadius: (borderRadius as SharedValue<number>).get(), overflow: "hidden" as const };
   });
 
-  const animatedSheen = useAnimatedStyle(() => {
+  const animatedBorderMask = useAnimatedStyle(() => {
     if (!isAnimated) return {};
     return { borderRadius: (borderRadius as SharedValue<number>).get() };
   });
@@ -45,21 +48,27 @@ export default function GlassMaterial({ children, style, borderRadius = 32 }: Gl
         end={FILL_GRADIENT_END}
         style={fill}
       />
-      {/* Border sheen using a View border — GPU-accelerated, no SVG lag */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            borderRadius: staticRadius,
-            borderWidth: 1,
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-            borderTopColor: 'rgba(255, 255, 255, 0.25)',
-            borderBottomColor: 'rgba(255, 255, 255, 0.06)',
-          },
-          isAnimated && animatedSheen,
-        ]}
+      {/* Gradient border: mask a linear-gradient to only show through a 1px border ring */}
+      <MaskedView
+        style={StyleSheet.absoluteFill}
+        maskElement={
+          <Animated.View
+            style={[
+              { flex: 1, borderWidth: 1, borderColor: 'black', borderRadius: staticRadius },
+              isAnimated && animatedBorderMask,
+            ]}
+          />
+        }
         pointerEvents="none"
-      />
+      >
+        <LinearGradient
+          colors={[COLORS.borderGradientBright, COLORS.borderGradientDim, COLORS.borderGradientMedium]}
+          start={BORDER_GRADIENT_START}
+          end={BORDER_GRADIENT_END}
+          locations={[0, 0.5, 1]}
+          style={{ flex: 1 }}
+        />
+      </MaskedView>
       <View style={styles.content} pointerEvents="box-none">
         {children}
       </View>

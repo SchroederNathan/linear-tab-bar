@@ -10,6 +10,9 @@ export const COLORS = {
   accentBlue: '#3B82F6',
   iconDefault: 'rgba(255, 255, 255, 0.9)',
   iconActive: 'rgba(255, 255, 255, 0.9)',
+  borderGradientBright: 'rgba(255, 255, 255, 0.15)',
+  borderGradientDim: 'rgba(255, 255, 255, 0.01)',
+  borderGradientMedium: 'rgba(255, 255, 255, 0.06)',
 } as const;
 
 export const SPRING = {
