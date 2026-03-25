@@ -56,6 +56,7 @@ interface TabBarPillProps {
   touchX: SharedValue<number>;
   touchY: SharedValue<number>;
   glowProgress: SharedValue<number>;
+  hoveredTab: SharedValue<number>;
   panGesture: GestureType;
 }
 
@@ -71,6 +72,7 @@ export default function TabBarPill({
   touchX,
   touchY,
   glowProgress,
+  hoveredTab,
   panGesture,
 }: TabBarPillProps) {
   const animatedBorderRadius = useDerivedValue(() =>
@@ -176,6 +178,7 @@ export default function TabBarPill({
                   touchX={touchX}
                   touchY={touchY}
                   glowProgress={glowProgress}
+                  hoveredTab={hoveredTab}
                 />
               ))}
             </View>

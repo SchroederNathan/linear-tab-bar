@@ -41,11 +41,13 @@ export default function App() {
     touchX,
     touchY,
     glowProgress,
+    hoveredTab,
     panGesture,
   } = usePillGestures(
     activeTab,
     setActiveTab,
     searchProgress,
+    toggleMenu,
   );
 
   const {
@@ -90,6 +92,7 @@ export default function App() {
             touchX={touchX}
             touchY={touchY}
             glowProgress={glowProgress}
+            hoveredTab={hoveredTab}
             panGesture={panGesture}
             searchPressed={searchPressed}
             searchOverflowX={searchOverflowX}

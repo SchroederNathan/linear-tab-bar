@@ -30,6 +30,7 @@ interface TabBarProps {
   touchX: SharedValue<number>;
   touchY: SharedValue<number>;
   glowProgress: SharedValue<number>;
+  hoveredTab: SharedValue<number>;
   panGesture: GestureType;
   searchPressed: SharedValue<number>;
   searchOverflowX: SharedValue<number>;
@@ -62,6 +63,7 @@ export default function TabBar({
   touchX,
   touchY,
   glowProgress,
+  hoveredTab,
   panGesture,
   searchPressed,
   searchOverflowX,
@@ -100,6 +102,7 @@ export default function TabBar({
           touchX={touchX}
           touchY={touchY}
           glowProgress={glowProgress}
+          hoveredTab={hoveredTab}
           panGesture={panGesture}
         />
         <SearchButton

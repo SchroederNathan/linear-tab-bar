@@ -36,6 +36,7 @@ interface TabIconProps {
   touchX: SharedValue<number>;
   touchY: SharedValue<number>;
   glowProgress: SharedValue<number>;
+  hoveredTab: SharedValue<number>;
 }
 
 export default function TabIcon({
@@ -51,6 +52,7 @@ export default function TabIcon({
   touchX,
   touchY,
   glowProgress,
+  hoveredTab,
 }: TabIconProps) {
   const circlePressed = useSharedValue(0);
 
@@ -125,9 +127,16 @@ export default function TabIcon({
     };
   });
 
-  const circleBgStyle = useAnimatedStyle(() => ({
-    opacity: circlePressed.get(),
+  const activeBgStyle = useAnimatedStyle(() => ({
+    opacity: hoveredTab.get() === -1 ? 1 : 0,
   }));
+
+  const hoverBgStyle = useAnimatedStyle(() => {
+    const hovered = hoveredTab.get() === index ? 1 : 0;
+    return {
+      opacity: isCircle ? Math.max(circlePressed.get(), hovered) : hovered,
+    };
+  });
 
   const iconColor = isActive ? COLORS.iconActive : COLORS.iconDefault;
 
@@ -140,22 +149,21 @@ export default function TabIcon({
         ]}
       >
         {isActive && (
-          <View
-            style={[
-              styles.activeBackground,
-              isCircle && styles.circleBackground,
-            ]}
-          />
-        )}
-        {isCircle && (
           <Animated.View
             style={[
               styles.activeBackground,
-              styles.circleBackground,
-              circleBgStyle,
+              isCircle && styles.circleBackground,
+              activeBgStyle,
             ]}
           />
         )}
+        <Animated.View
+          style={[
+            styles.activeBackground,
+            isCircle && styles.circleBackground,
+            hoverBgStyle,
+          ]}
+        />
         <View style={styles.iconWrapper}>
           <Icon
             size={ICON_SIZE}

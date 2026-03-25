@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   useSharedValue,
   withSpring,
@@ -24,6 +24,7 @@ export default function usePillGestures(
   activeTab: number,
   setActiveTab: (index: number) => void,
   searchProgress: SharedValue<number>,
+  toggleMenu: () => void,
 ) {
   const pillPressed = useSharedValue(0);
   const overflowX = useSharedValue(0);
@@ -31,11 +32,7 @@ export default function usePillGestures(
   const touchX = useSharedValue(PILL_WIDTH / 2);
   const touchY = useSharedValue(PILL_HEIGHT / 2);
   const glowProgress = useSharedValue(0);
-  const activeTabSV = useSharedValue(activeTab);
-
-  useEffect(() => {
-    activeTabSV.set(activeTab);
-  }, [activeTab]);
+  const hoveredTab = useSharedValue(-1);
 
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -51,7 +48,7 @@ export default function usePillGestures(
     }
   }, [setActiveTab, pendingTab]);
 
-  const detectTab = useCallback((x: number) => {
+  const detectAnyTab = useCallback((x: number) => {
     "worklet";
     if (x >= TABS_START && x < TABS_END) {
       return Math.min(
@@ -59,20 +56,11 @@ export default function usePillGestures(
         Math.floor((x - TABS_START) / TAB_ZONE_WIDTH),
       );
     }
+    if (x >= TABS_END && x <= PILL_WIDTH) {
+      return 3;
+    }
     return -1;
   }, []);
-
-  const switchToTab = useCallback((x: number) => {
-    "worklet";
-    if (searchProgress.get() >= 0.5) return;
-    const newTab = detectTab(x);
-    if (newTab >= 0 && newTab !== activeTabSV.get()) {
-      activeTabSV.set(newTab);
-      pendingTab.set(newTab);
-      scheduleOnRN(applyPendingTab);
-      scheduleOnRN(triggerHaptic);
-    }
-  }, [searchProgress, detectTab, activeTabSV, pendingTab, applyPendingTab, triggerHaptic]);
 
   const panGesture = useMemo(() => {
     const longPress = Gesture.LongPress()
@@ -87,14 +75,14 @@ export default function usePillGestures(
         pillPressed.set(withTiming(1, { duration: 80 }));
         glowProgress.set(1);
 
-        // Activate tab immediately on press
-        switchToTab(e.x);
+        if (searchProgress.get() < 0.5) {
+          hoveredTab.set(detectAnyTab(e.x));
+        }
       });
 
     const pan = Gesture.Pan()
       .minDistance(10)
       .onStart((e) => {
-        // Ensure glow is active even on fast swipes where long press may not fire
         cancelAnimation(overflowX);
         cancelAnimation(overflowY);
         cancelAnimation(glowProgress);
@@ -108,11 +96,9 @@ export default function usePillGestures(
         const x = e.x;
         const y = e.y;
 
-        // Track finger for glow position
         touchX.set(x);
         touchY.set(y);
 
-        // Compute overflow past container bounds
         let ovX = 0;
         if (x < 0) ovX = x;
         else if (x > PILL_WIDTH) ovX = x - PILL_WIDTH;
@@ -124,16 +110,38 @@ export default function usePillGestures(
         overflowX.set(ovX);
         overflowY.set(ovY);
 
-        // When inside bounds, update active tab based on finger position
+        if (searchProgress.get() >= 0.5) return;
+
         if (ovX === 0 && ovY === 0) {
-          switchToTab(x);
+          const newTab = detectAnyTab(x);
+          if (newTab !== hoveredTab.get()) {
+            hoveredTab.set(newTab);
+            scheduleOnRN(triggerHaptic);
+          }
+        } else {
+          if (hoveredTab.get() !== -1) {
+            hoveredTab.set(-1);
+          }
         }
       })
       .onEnd(() => {
+        const commitTab = hoveredTab.get();
+        hoveredTab.set(-1);
         pillPressed.set(withTiming(0, { duration: 150 }));
         glowProgress.set(withTiming(2, { duration: 300 }));
         overflowX.set(withSpring(0, SPRING_BOUNCY));
         overflowY.set(withSpring(0, SPRING_BOUNCY));
+
+        if (searchProgress.get() >= 0.5) return;
+
+        if (commitTab >= 0 && commitTab <= 2) {
+          pendingTab.set(commitTab);
+          scheduleOnRN(applyPendingTab);
+          scheduleOnRN(triggerHaptic);
+        } else if (commitTab === 3) {
+          scheduleOnRN(toggleMenu);
+          scheduleOnRN(triggerHaptic);
+        }
       });
 
     return Gesture.Simultaneous(longPress, pan);
@@ -144,7 +152,13 @@ export default function usePillGestures(
     touchY,
     pillPressed,
     glowProgress,
-    switchToTab,
+    hoveredTab,
+    detectAnyTab,
+    searchProgress,
+    toggleMenu,
+    triggerHaptic,
+    pendingTab,
+    applyPendingTab,
   ]);
 
   return {
@@ -154,6 +168,7 @@ export default function usePillGestures(
     touchX,
     touchY,
     glowProgress,
+    hoveredTab,
     panGesture,
   };
 }
