@@ -8,8 +8,6 @@ Built with Expo, React Native Reanimated, and Gesture Handler.
 
 ## Demo
 
-GitHub READMEs do not embed MP4s from the repo; this GIF matches the screen recording.
-
 ![Liquid glass tab bar demo](assets/linear-tabbar-demo.gif)
 
 ## Features
