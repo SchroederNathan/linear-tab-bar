@@ -6,8 +6,6 @@ A React Native demo recreating Linear's custom liquid glass tab bar with fluid a
 
 Built with Expo, React Native Reanimated, and Gesture Handler.
 
-## Demo
-
 ![Liquid glass tab bar demo](assets/linear-tabbar-demo.gif)
 
 ## Features
