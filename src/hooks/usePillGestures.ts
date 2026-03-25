@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   useSharedValue,
   withSpring,
@@ -33,7 +33,9 @@ export default function usePillGestures(
   const glowProgress = useSharedValue(0);
   const activeTabSV = useSharedValue(activeTab);
 
-  activeTabSV.set(activeTab);
+  useEffect(() => {
+    activeTabSV.set(activeTab);
+  }, [activeTab]);
 
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
