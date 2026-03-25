@@ -79,18 +79,13 @@ export default function TabIcon({
     .onFinalize((_event, success) => {
       pillPressed.set(withTiming(0, { duration: 150 }));
       glowProgress.set(withTiming(2, { duration: 300 }));
+      hoveredTab.set(-1);
       if (isCircle) {
         circlePressed.set(withTiming(0, { duration: 200 }));
-        // Always trigger for circle since onEnd may not fire due to outer gesture conflict
-        scheduleOnRN(triggerHaptic);
-        scheduleOnRN(handlePress);
       }
-    })
-    .onEnd(() => {
+      // Always trigger in onFinalize since onEnd may not fire due to outer gesture conflict
       scheduleOnRN(triggerHaptic);
-      if (!isCircle) {
-        scheduleOnRN(handlePress);
-      }
+      scheduleOnRN(handlePress);
     }), [triggerHaptic, handlePress]);
 
   // Fade out icons during search or menu transition
